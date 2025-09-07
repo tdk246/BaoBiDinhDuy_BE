@@ -31,23 +31,11 @@ const adminRoutes = require('./routes/adminRoutes');
 app.use('/api/admin', adminRoutes);
 
 // Các API mẫu (có thể xoá nếu dùng MongoDB cho CRUD)
-const banners = [
-	{ img: 'http://localhost:5000/static/banner1.jpg' },
-	{ img: 'http://localhost:5000/static/banner2.jpg' },
-	{ img: 'http://localhost:5000/static/banner3.jpg' }
-];
-const gallery = [
-	{ img: 'http://localhost:5000/static/gallery1.jpg' },
-	{ img: 'http://localhost:5000/static/gallery2.jpg' },
-	{ img: 'http://localhost:5000/static/gallery3.jpg' }
-];
 const news = [
 	{ title: 'Tin tức 1', summary: 'Nội dung tin tức 1', link: '#' },
 	{ title: 'Tin tức 2', summary: 'Nội dung tin tức 2', link: '#' },
 	{ title: 'Tin tức 3', summary: 'Nội dung tin tức 3', link: '#' }
 ];
-app.get('/api/banner', (req, res) => res.json(banners));
-app.get('/api/gallery', (req, res) => res.json(gallery));
 app.get('/api/news', (req, res) => res.json(news));
 
 app.use('/static', express.static(__dirname + '/../static'));

@@ -2,6 +2,12 @@ const Banner = require('../models/Banner');
 
 exports.getAll = async (req, res) => {
   const banners = await Banner.find();
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  banners.forEach(banner => {
+    if (banner.img && !banner.img.startsWith('http')) {
+      banner.img = baseUrl + banner.img;
+    }
+  });
   res.json(banners);
 };
 

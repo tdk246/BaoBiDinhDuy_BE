@@ -2,6 +2,12 @@ const Gallery = require('../models/Gallery');
 
 exports.getAll = async (req, res) => {
   const images = await Gallery.find();
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  images.forEach(image => {
+    if (image.img && !image.img.startsWith('http')) {
+      image.img = baseUrl + image.img;
+    }
+  });
   res.json(images);
 };
 

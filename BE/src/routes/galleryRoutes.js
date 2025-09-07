@@ -16,9 +16,8 @@ const upload = multer({ storage });
 
 // API upload ảnh gallery
 router.post('/upload', upload.single('image'), (req, res) => {
-	const PORT = process.env.PORT || 5000;
 	if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-	const fileUrl = `http://localhost:${PORT}/static/gallery/${req.file.filename}`;
+	const fileUrl = `/static/gallery/${req.file.filename}`;
 	res.json({ url: fileUrl });
 });
 
