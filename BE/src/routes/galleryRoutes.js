@@ -3,32 +3,33 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const streamifier = require('streamifier');
 const galleryController = require('../controllers/galleryController');
 
-const storage = multer.diskStorage({
-	destination: function (req, file, cb) {
-		const dir = path.join(__dirname, '../../static/gallery');
-		try {
-			fs.mkdirSync(dir, { recursive: true });
-			cb(null, dir);
-		} catch (e) {
-			cb(e);
-		}
-	},
-	filename: function (req, file, cb) {
-		cb(null, Date.now() + '-' + file.originalname);
-	}
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
-const upload = multer({ storage });
+
+// Use memory storage; we'll stream to Cloudinary
+const upload = multer({ storage: multer.memoryStorage() });
 
 // API upload ảnh gallery
-router.post('/upload', upload.single('image'), (req, res, next) => {
+router.post('/upload', upload.single('image'), async (req, res, next) => {
 	if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-	const envBase = process.env.PUBLIC_BASE_URL;
-	const baseUrl = envBase && envBase.startsWith('http') ? envBase : `${req.protocol}://${req.get('host')}`;
-	const filePath = `/static/gallery/${req.file.filename}`;
+
 	try {
-		res.json({ url: `${baseUrl}${filePath}`, path: filePath });
+		const uploadStream = cloudinary.uploader.upload_stream(
+			{ folder: process.env.CLOUDINARY_FOLDER || 'dinhduy/gallery' },
+			(error, result) => {
+				if (error) return next(error);
+				return res.json({ url: result.secure_url, public_id: result.public_id });
+			}
+		);
+		streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
 	} catch (e) {
 		next(e);
 	}

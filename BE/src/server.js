@@ -9,6 +9,7 @@ require('dotenv').config();
 const app = express();
 app.set('trust proxy', true);
 const PORT = process.env.PORT || 5000;
+const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(__dirname, '../../static/gallery');
 
 // Permissive CORS: allow all origins and handle preflight automatically
 app.use(cors());
@@ -37,6 +38,8 @@ app.use('/api/admin', adminRoutes);
 // Removed sample /api/news to avoid conflicts; using real routes above
 
 app.use('/static', express.static(__dirname + '/../static'));
+// Serve uploaded files from configurable directory under /static/gallery
+app.use('/static/gallery', express.static(UPLOAD_DIR));
 
 // Helper to get public base (useful when behind proxy or custom domain)
 app.get('/healthz', (req, res) => {
@@ -45,8 +48,7 @@ app.get('/healthz', (req, res) => {
 
 // Ensure upload directory exists
 try {
-  const uploadDir = path.join(__dirname, '../../static/gallery');
-  fs.mkdirSync(uploadDir, { recursive: true });
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 } catch (e) {
   console.error('Failed to ensure upload directory:', e);
 }
