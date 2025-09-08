@@ -2,7 +2,8 @@ const Banner = require('../models/Banner');
 
 exports.getAll = async (req, res) => {
   const banners = await Banner.find();
-  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  const envBase = process.env.PUBLIC_BASE_URL;
+  const baseUrl = envBase && envBase.startsWith('http') ? envBase : `${req.protocol}://${req.get('host')}`;
   banners.forEach(banner => {
     if (banner.img && !banner.img.startsWith('http')) {
       banner.img = baseUrl + banner.img;

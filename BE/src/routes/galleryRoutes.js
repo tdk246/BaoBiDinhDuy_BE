@@ -17,8 +17,10 @@ const upload = multer({ storage });
 // API upload ảnh gallery
 router.post('/upload', upload.single('image'), (req, res) => {
 	if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-	const fileUrl = `/static/gallery/${req.file.filename}`;
-	res.json({ url: fileUrl });
+	const envBase = process.env.PUBLIC_BASE_URL;
+	const baseUrl = envBase && envBase.startsWith('http') ? envBase : `${req.protocol}://${req.get('host')}`;
+	const filePath = `/static/gallery/${req.file.filename}`;
+	res.json({ url: `${baseUrl}${filePath}`, path: filePath });
 });
 
 router.get('/', galleryController.getAll);

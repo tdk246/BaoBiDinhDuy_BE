@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 
 const app = express();
+app.set('trust proxy', true);
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
@@ -39,6 +40,11 @@ const news = [
 app.get('/api/news', (req, res) => res.json(news));
 
 app.use('/static', express.static(__dirname + '/../static'));
+
+// Helper to get public base (useful when behind proxy or custom domain)
+app.get('/healthz', (req, res) => {
+  res.json({ status: 'ok' });
+});
 
 app.listen(PORT, () => {
 	console.log(`Server is running on port ${PORT}`);
