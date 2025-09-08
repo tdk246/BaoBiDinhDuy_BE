@@ -5,7 +5,17 @@ exports.getAll = async (req, res) => {
   const envBase = process.env.PUBLIC_BASE_URL;
   const baseUrl = envBase && envBase.startsWith('http') ? envBase : `${req.protocol}://${req.get('host')}`;
   images.forEach(image => {
-    if (image.img && !image.img.startsWith('http')) {
+    if (!image.img) return;
+    try {
+      if (image.img.startsWith('http')) {
+        const u = new URL(image.img);
+        if (u.hostname === 'localhost' || u.hostname === '127.0.0.1') {
+          image.img = baseUrl + u.pathname;
+        }
+      } else {
+        image.img = baseUrl + image.img;
+      }
+    } catch (e) {
       image.img = baseUrl + image.img;
     }
   });

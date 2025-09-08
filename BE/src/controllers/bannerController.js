@@ -5,7 +5,17 @@ exports.getAll = async (req, res) => {
   const envBase = process.env.PUBLIC_BASE_URL;
   const baseUrl = envBase && envBase.startsWith('http') ? envBase : `${req.protocol}://${req.get('host')}`;
   banners.forEach(banner => {
-    if (banner.img && !banner.img.startsWith('http')) {
+    if (!banner.img) return;
+    try {
+      if (banner.img.startsWith('http')) {
+        const u = new URL(banner.img);
+        if (u.hostname === 'localhost' || u.hostname === '127.0.0.1') {
+          banner.img = baseUrl + u.pathname;
+        }
+      } else {
+        banner.img = baseUrl + banner.img;
+      }
+    } catch (e) {
       banner.img = baseUrl + banner.img;
     }
   });
