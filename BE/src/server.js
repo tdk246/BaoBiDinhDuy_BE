@@ -10,35 +10,8 @@ const app = express();
 app.set('trust proxy', true);
 const PORT = process.env.PORT || 5000;
 
-// Strict CORS: allow specific origins and handle preflight
-const parseAllowedOrigins = (value) => (value || '')
-  .split(',')
-  .map(s => s.trim())
-  .filter(Boolean);
-const defaultOrigins = [
-  'https://ctydinhduy.vercel.app',
-  'http://localhost:3000'
-];
-const allowedOrigins = Array.from(new Set([
-  ...defaultOrigins,
-  ...parseAllowedOrigins(process.env.ALLOWED_ORIGINS)
-]));
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow no-origin requests (mobile apps, curl) and allowed origins
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      return callback(null, true);
-    }
-    return callback(new Error('CORS not allowed for origin: ' + origin));
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: false,
-  optionsSuccessStatus: 200
-};
-app.use((req, res, next) => { res.setHeader('Vary', 'Origin'); next(); });
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+// Permissive CORS: allow all origins and handle preflight automatically
+app.use(cors());
 app.use(express.json());
 
 // Kết nối MongoDB
