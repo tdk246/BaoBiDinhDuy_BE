@@ -2,6 +2,8 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -44,6 +46,22 @@ app.use('/static', express.static(__dirname + '/../static'));
 // Helper to get public base (useful when behind proxy or custom domain)
 app.get('/healthz', (req, res) => {
   res.json({ status: 'ok' });
+});
+
+// Ensure upload directory exists
+try {
+  const uploadDir = path.join(__dirname, '../../static/gallery');
+  fs.mkdirSync(uploadDir, { recursive: true });
+} catch (e) {
+  console.error('Failed to ensure upload directory:', e);
+}
+
+// JSON error handler (avoid HTML error pages)
+// Must be AFTER routes/middlewares
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  const status = err.status || 500;
+  res.status(status).json({ error: err.message || 'Internal Server Error' });
 });
 
 app.listen(PORT, () => {
