@@ -10,7 +10,35 @@ const app = express();
 app.set('trust proxy', true);
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+// Strict CORS: allow specific origins and handle preflight
+const parseAllowedOrigins = (value) => (value || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+const defaultOrigins = [
+  'https://ctydinhduy.vercel.app',
+  'http://localhost:3000'
+];
+const allowedOrigins = Array.from(new Set([
+  ...defaultOrigins,
+  ...parseAllowedOrigins(process.env.ALLOWED_ORIGINS)
+]));
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow no-origin requests (mobile apps, curl) and allowed origins
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+    return callback(new Error('CORS not allowed for origin: ' + origin));
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false,
+  optionsSuccessStatus: 200
+};
+app.use((req, res, next) => { res.setHeader('Vary', 'Origin'); next(); });
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 
 // Kết nối MongoDB
@@ -33,13 +61,7 @@ app.use('/api/news', newsRoutes);
 const adminRoutes = require('./routes/adminRoutes');
 app.use('/api/admin', adminRoutes);
 
-// Các API mẫu (có thể xoá nếu dùng MongoDB cho CRUD)
-const news = [
-	{ title: 'Tin tức 1', summary: 'Nội dung tin tức 1', link: '#' },
-	{ title: 'Tin tức 2', summary: 'Nội dung tin tức 2', link: '#' },
-	{ title: 'Tin tức 3', summary: 'Nội dung tin tức 3', link: '#' }
-];
-app.get('/api/news', (req, res) => res.json(news));
+// Removed sample /api/news to avoid conflicts; using real routes above
 
 app.use('/static', express.static(__dirname + '/../static'));
 

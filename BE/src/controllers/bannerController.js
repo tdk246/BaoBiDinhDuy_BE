@@ -1,4 +1,5 @@
 const Banner = require('../models/Banner');
+const mongoose = require('mongoose');
 
 exports.getAll = async (req, res) => {
   const banners = await Banner.find();
@@ -29,11 +30,17 @@ exports.create = async (req, res) => {
 };
 
 exports.update = async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({ error: 'Invalid id' });
+  }
   const banner = await Banner.findByIdAndUpdate(req.params.id, req.body, { new: true });
   res.json(banner);
 };
 
 exports.delete = async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({ error: 'Invalid id' });
+  }
   await Banner.findByIdAndDelete(req.params.id);
   res.json({ success: true });
 };
