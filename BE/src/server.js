@@ -14,7 +14,7 @@ const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(__dirname, "../static/gal
 // ===== CORS CONFIG =====
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://bao-bi-dinh-duy.vercel.app" // domain frontend trên Vercel
+  "https://ctydinhduy.vercel.app/" // domain frontend trên Vercel
 ];
 
 app.use(
