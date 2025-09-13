@@ -1,67 +1,78 @@
-const express = require('express');
-const cors = require('cors');
-const mongoose = require('mongoose');
-const fs = require('fs');
-const path = require('path');
-require('dotenv').config();
+const express = require("express");
+const cors = require("cors");
+const mongoose = require("mongoose");
+const path = require("path");
+const fs = require("fs");
+require("dotenv").config();
 
 const app = express();
-app.set('trust proxy', true);
+app.set("trust proxy", true);
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(__dirname, '../static/gallery');
+// Upload dir
+const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(__dirname, "../static/gallery");
 
-// CORS
-app.use(cors());
-app.use((req, res, next) => {
-  if (req.method === 'OPTIONS') {
-    const origin = req.headers.origin || '*';
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Vary', 'Origin');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    return res.sendStatus(204);
-  }
-  next();
-});
+// ===== CORS CONFIG =====
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://bao-bi-dinh-duy.vercel.app" // domain frontend trên Vercel
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: "GET,POST,PUT,DELETE,OPTIONS",
+    allowedHeaders: "Content-Type,Authorization"
+  })
+);
+
 app.use(express.json());
 
-// MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-	useNewUrlParser: true,
-	useUnifiedTopology: true,
-})
-	.then(() => console.log('MongoDB connected!'))
-	.catch(err => console.error('MongoDB connection error:', err));
+// ===== CONNECT MONGODB =====
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  })
+  .then(() => console.log("MongoDB connected!"))
+  .catch((err) => console.error("MongoDB connection error:", err));
 
-// Routes
-const bannerRoutes = require('../src/routes/bannerRoutes');
-const galleryRoutes = require('../src/routes/galleryRoutes');
-const newsRoutes = require('../src/routes/newsRoutes');
-const adminRoutes = require('../src/routes/adminRoutes');
+const bannerRoutes = require("./routes/bannerRoutes");
+const galleryRoutes = require("./routes/galleryRoutes");
+const newsRoutes = require("./routes/newsRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
-app.use('/api/banner', bannerRoutes);
-app.use('/api/gallery', galleryRoutes);
-app.use('/api/news', newsRoutes);
-app.use('/api/admin', adminRoutes);
+app.use("/api/banner", bannerRoutes);
+app.use("/api/gallery", galleryRoutes);
+app.use("/api/news", newsRoutes);
+app.use("/api/admin", adminRoutes);
 
-// Static
-app.use('/static', express.static(path.join(__dirname, '../static')));
-app.use('/static/gallery', express.static(UPLOAD_DIR));
+// ===== STATIC FILES =====
+// Ảnh cần commit sẵn vào repo (ví dụ thư mục /static hoặc /public)
+app.use("/static", express.static(path.join(__dirname, "../static")));
+app.use("/static/gallery", express.static(UPLOAD_DIR));
+app.use("/img", express.static(path.join(__dirname, "../static"))); // serve images under /img
 
 // Health check
-app.get('/healthz', (req, res) => res.json({ status: 'ok' }));
+app.get("/healthz", (req, res) => res.json({ status: "ok" }));
 
 // Ensure upload dir
 try {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 } catch (e) {
-  console.error('Failed to ensure upload directory:', e);
+  console.error("Failed to ensure upload directory:", e);
 }
 
 // Error handler
 app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' });
+  console.error("Unhandled error:", err);
+  res.status(err.status || 500).json({ error: err.message || "Internal Server Error" });
 });
 
-module.exports = app; 
+// Xuất ra để Vercel dùng
+module.exports = app;
